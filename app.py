@@ -27,8 +27,6 @@ STATE = ""
 SHOW_DIALOG_bool = True
 SHOW_DIALOG_str = str(SHOW_DIALOG_bool).lower()
 
-AUTH_HEADER = []
-
 auth_query_parameters = {
     "response_type": "code",
     "redirect_uri": REDIRECT_URI,
@@ -49,7 +47,7 @@ def login():
 
 @app.route("/moodify")
 def get_playlist(): 
-    req =  requests.get("https://api.spotify.com/v1/me", headers=AUTH_HEADER[0])
+    req =  requests.get("https://api.spotify.com/v1/me")
     return req.text 
  
 @app.route("/callback/q")
@@ -71,7 +69,6 @@ def callback():
     expires_in = response_data["expires_in"]
 
     authorization_header = {"Authorization":"Bearer {}".format(access_token)}
-    AUTH_HEADER.append(authorization_header)
     
     req =  requests.get("https://api.spotify.com/v1/me", headers=authorization_header)
     return req.text 
