@@ -23,7 +23,7 @@ sp = spotipy.Spotify(auth=token)
 #read from file where you specified your playlists
 listOfLinks = readFromFile('playlistLinks')
 #open file for writing results
-file = open("tracksFeatures", "w")
+WriteToFile = open("tracksFeatures", "w")
 #dataLine describe if the line contains data (URL) or name of playlist (skip this line)
 dataLine = False
 for line in listOfLinks:
@@ -67,4 +67,4 @@ for line in listOfLinks:
 			file.write(str(vectorOfFeatures)[2:-2]+"\n")
 		print()
 
-file.close()
+WriteToFile.close()
