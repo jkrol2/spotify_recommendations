@@ -36,7 +36,7 @@ auth_query_parameters = {
 
 @app.route("/")
 def main():
-    return 'ok'
+    return render_template('index.html')
 
 @app.route("/login")
 def login():
@@ -72,6 +72,7 @@ def callback():
     
     req =  requests.get("https://api.spotify.com/v1/me", headers=authorization_header)
     return req.text 
+    return render_template('moodify.html')
 #    return redirect("/moodify")
 
 app.run(host='0.0.0.0',port=PORT)
