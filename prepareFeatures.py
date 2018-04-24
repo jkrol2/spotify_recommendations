@@ -2,6 +2,7 @@ import spotipy
 import spotipy.oauth2 as oauth2
 import json
 import time
+import yaml
 
 def readFromFile(filename) :
 	listOfLinks2 = []
@@ -27,8 +28,14 @@ def get_playlist_tracks(username,playlist_id):
 		trackUriList.append(tr['track']['uri'])
 	return trackUriList
 
+
+conf = yaml.load(open('conf/application.yml'))
+CLIENT_ID = conf['client']['id']
+CLIENT_SECRET = conf['client']['secret']
+print(CLIENT_ID)
+print(CLIENT_SECRET)
 #INSERT YOUR CREDENTIALS HERE
-credentials = oauth2.SpotifyClientCredentials('PUBLIC_KEY', 'PRIVATE_KEY')
+credentials = oauth2.SpotifyClientCredentials(CLIENT_ID, CLIENT_SECRET)
 token = credentials.get_access_token()
 sp = spotipy.Spotify(auth=token)
 
@@ -61,7 +68,7 @@ for linkToPlaylist in listOfLinks:
 			if ((i+limitOfTracksApiCanProcess-1) > (len(tracks) - 1)):
 				features = sp.audio_features(tracks[i:(len(tracks))])
 			else:
-				features = sp.audio_features(tracks[i:(i+limitOfTracksApiCanProcess-1)])
+				features = sp.audio_features(tracks[i:(i+limitOfTracksApiCanProcess)])
 		except:
 			print("Spotipy bug")
 			continue
