@@ -66,6 +66,7 @@ def get_songs_from_saved_artists(songs, authorization_header):
      
 @app.route("/callback/q")
 def callback():
+    mood = 4
     auth_token = request.args['code']
     code_payload = {
         "grant_type": "authorization_code",
@@ -89,7 +90,17 @@ def callback():
     get_songs_from_saved_artists(songs, authorization_header)
     print(len(songs))
     #return str(songs)
-    return str(justPredict.predict(songs[:50])) 
+    moodified_songs = []
+    for x in xrange(0, len(songs), 50):
+        if len(moodified_songs) == 20:
+            break
+        for song in justPredict.predict(songs[x:x+50]):
+            if int(song[1]) == int(mood):
+                moodified_songs.append(song[0])
+            if len(moodified_songs) == 20:
+                break
+    return str(moodified_songs)
+    return str(justPredict.predict(songs[:50])[2][0]) 
     #return render_template('moodify.html')
 
 app.run(host='0.0.0.0',port=PORT)
