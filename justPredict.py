@@ -80,7 +80,7 @@ def predictFromFeatures(featuresArr):
 	for element in featuresArr:
 		element = np.array(element)
 		element = element.reshape(1, -1)
-		predictArr.append(int(clf.predict(element)))
+		predictArr.append(np.asscalar(clf.predict(element)))
 	#returns simple array of predicted labels
 	return predictArr
 
@@ -95,7 +95,8 @@ def predict(arrOfTrackUrls):
 	predictedTracks = predictFromFeatures(feat)
 	listOfUrlAndPrediction = []
 	for url, prediction in zip(arrOfTrackUrls, predictedTracks):
-		listOfUrlAndPrediction.append(("https://open.spotify.com/track/" + url.split(':')[2], prediction))
+		listOfUrlAndPrediction.append((url, prediction))
+#		listOfUrlAndPrediction.append(("https://open.spotify.com/track/" + url.split(':')[2], prediction))
 	return listOfUrlAndPrediction
 
 if __name__ == "__main__":
