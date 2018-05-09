@@ -62,8 +62,17 @@ def get_songs_from_saved_tracks(songs, authorization_header):
             songs.append(track['track']['external_urls']['spotify'])
 
 
+
+def get_songs_from_saved_albums(songs, authorization_header):
+    req = requests.get("https://api.spotify.com/v1/me/albums", headers=authorization_header)
+    album_ids = [album['album']['id'] for album in req.json()['items'] ]
+    for album_id in album_ids:
+        req = requests.get("http://api.spotify.com/v1/albums/{album_id}/tracks".format(album_id=album_id), headers=authorization_header)
+        for track in req.json()['items']:
+            songs.append(track['external_urls']['spotify'])
+        
 def get_songs_from_saved_artists(songs, authorization_header):
-    req =  requests.get("https://api.spotify.com/v1/me/following?type=artist", headers=authorization_header)
+    req = requests.get("https://api.spotify.com/v1/me/following?type=artist", headers=authorization_header)
     artists_ids = [a_id['id'] for a_id in req.json()['artists']['items']]
     for artist in artists_ids:
         res = requests.get("https://api.spotify.com/v1/artists/"+artist+"/top-tracks?country=PL&limit=50", headers=authorization_header)
@@ -116,6 +125,7 @@ def callback():
     
     get_songs_from_saved_tracks(songs, authorization_header)
     get_songs_from_saved_artists(songs, authorization_header)
+    get_songs_from_saved_albums(songs, authorization_header)
     moodified_songs = []
     for x in xrange(0, len(songs), 50):
         if len(moodified_songs) == 20:
@@ -126,7 +136,7 @@ def callback():
     if len(moodified_songs) < 5:
         return render_template('tonie.html')
 
-    if len(moodified_songs < 20:
+    if len(moodified_songs) < 20:
         chosen_songs = moodified_songs
     else:
         chosen_songs = []
