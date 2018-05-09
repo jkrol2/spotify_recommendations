@@ -3,6 +3,7 @@ import requests
 import base64
 import urllib
 import yaml
+import random
 from flask import Flask, request, redirect, g, render_template, Response, url_for
 import spotipy
 import justPredict
@@ -115,8 +116,6 @@ def callback():
     
     get_songs_from_saved_tracks(songs, authorization_header)
     get_songs_from_saved_artists(songs, authorization_header)
-    print(len(songs))
-    #return str(songs)
     moodified_songs = []
     for x in xrange(0, len(songs), 50):
         if len(moodified_songs) == 20:
@@ -124,14 +123,16 @@ def callback():
         for song in justPredict.predict(songs[x:x+50]):
             if int(song[1]) == int(mood):
                 moodified_songs.append(song[0])
-            if len(moodified_songs) == 20:
-                break
     if len(moodified_songs) < 5:
-        return render_template('tonie.html')        
-    return render_template('return.html', moodif=str(create_playlist(moodified_songs, authorization_header)))
+        return render_template('tonie.html')
+    
+    chosen_songs = []
+    while len(chosen_songs) < 20:
+        chosen_songs.append(random.choice(moodified_songs))
+        print(len(chosen_songs))
+        
+    return render_template('return.html', moodif=str(create_playlist(chosen_songs, authorization_header)))
     return redirect('/return')
-    return str(moodified_songs)
-#    return str(justPredict.predict(songs[:50])[2][0]) 
     #return render_template('moodify.html')
 
 app.run(host='0.0.0.0',port=PORT)
