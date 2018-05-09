@@ -72,12 +72,21 @@ def get_songs_from_saved_artists(songs, authorization_header):
 def create_playlist(moodified_songs, authorization_header):
     req = requests.get("https://api.spotify.com/v1/me/", headers=authorization_header)
     user_id = str(req.json()['id'])
-    payload = {"name" : "Moodify playlist"}
-    req = requests.post("https://api.spotify.com/v1/users/{0}/playlists".format(user_id), json=payload, headers=authorization_header)
-    playlist_id = str(req.json()['id'])
-    playlist_uri = str(req.json()['uri'])
+    
+    req = requests.get("https://api.spotify.com/v1/users/{user_id}/playlists".format(user_id=user_id), headers=authorization_header)
+    for playlist in req.json()['items']:
+        if playlist['name'] == 'Moodify playlist':
+            playlist_id = playlist['id']
+            playlist_uri = playlist['uri']
+            break
+    else:
+        payload = {"name" : "Moodify playlist"}
+        req = requests.post("https://api.spotify.com/v1/users/{0}/playlists".format(user_id), json=payload, headers=authorization_header)
+        playlist_id = str(req.json()['id'])
+        playlist_uri = str(req.json()['uri'])
+
     payload = {"uris": ["spotify:track:"+str(track.split('track/')[1]) for track in moodified_songs]}
-    req = requests.post("https://api.spotify.com/v1/users/{user_id}/playlists/{playlist_id}/tracks".format(user_id=user_id, playlist_id=playlist_id), headers=authorization_header, json=payload)
+    req = requests.put("https://api.spotify.com/v1/users/{user_id}/playlists/{playlist_id}/tracks".format(user_id=user_id, playlist_id=playlist_id), headers=authorization_header, json=payload)
 
     return playlist_uri
      
