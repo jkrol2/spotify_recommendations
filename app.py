@@ -117,6 +117,8 @@ def callback():
                 moodified_songs.append(song[0])
             if len(moodified_songs) == 20:
                 break
+    if len(moodified_songs) < 5:
+        return render_template('tonie.html')        
     return render_template('return.html', moodif=str(create_playlist(moodified_songs, authorization_header)))
     return redirect('/return')
     return str(moodified_songs)
