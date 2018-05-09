@@ -3,7 +3,7 @@ import requests
 import base64
 import urllib
 import yaml
-from flask import Flask, request, redirect, g, render_template, Response
+from flask import Flask, request, redirect, g, render_template, Response, url_for
 import spotipy
 import justPredict
 
@@ -40,6 +40,7 @@ def main():
     if request.method == 'POST':
         global mood
         mood = request.form['mood']
+#        return redirect(url_for('.login', mood=mood))
         return redirect('/login')
     return render_template('index.html')
 
@@ -67,6 +68,18 @@ def get_songs_from_saved_artists(songs, authorization_header):
         res = requests.get("https://api.spotify.com/v1/artists/"+artist+"/top-tracks?country=PL&limit=50", headers=authorization_header)
         for track in res.json()['tracks']:
             songs.append(track['external_urls']['spotify'])
+
+def create_playlist(moodified_songs, authorization_header):
+    req = requests.get("https://api.spotify.com/v1/me/", headers=authorization_header)
+    user_id = str(req.json()['id'])
+    payload = {"name" : "Moodify playlist"}
+    req = requests.post("https://api.spotify.com/v1/users/{0}/playlists".format(user_id), json=payload, headers=authorization_header)
+    playlist_id = str(req.json()['id'])
+    playlist_uri = str(req.json()['uri'])
+    payload = {"uris": ["spotify:track:"+str(track.split('track/')[1]) for track in moodified_songs]}
+    req = requests.post("https://api.spotify.com/v1/users/{user_id}/playlists/{playlist_id}/tracks".format(user_id=user_id, playlist_id=playlist_id), headers=authorization_header, json=payload)
+
+    return playlist_uri
      
 @app.route("/callback/q")
 def callback():
@@ -103,8 +116,9 @@ def callback():
                 moodified_songs.append(song[0])
             if len(moodified_songs) == 20:
                 break
+    return str(create_playlist(moodified_songs, authorization_header))
     return str(moodified_songs)
-    return str(justPredict.predict(songs[:50])[2][0]) 
+#    return str(justPredict.predict(songs[:50])[2][0]) 
     #return render_template('moodify.html')
 
 app.run(host='0.0.0.0',port=PORT)
