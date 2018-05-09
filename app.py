@@ -35,8 +35,12 @@ auth_query_parameters = {
     "client_id": CLIENT_ID
 }
 
-@app.route("/")
+@app.route("/", methods=["GET","POST"])
 def main():
+    if request.method == 'POST':
+        global mood
+        mood = request.form['mood']
+        return redirect('/login')
     return render_template('index.html')
 
 @app.route("/login")
@@ -66,7 +70,7 @@ def get_songs_from_saved_artists(songs, authorization_header):
      
 @app.route("/callback/q")
 def callback():
-    mood = 4
+    #mood = 4 #print "mood: ", mood
     auth_token = request.args['code']
     code_payload = {
         "grant_type": "authorization_code",
