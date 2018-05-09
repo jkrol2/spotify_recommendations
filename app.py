@@ -67,7 +67,8 @@ def get_songs_from_saved_artists(songs, authorization_header):
         res = requests.get("https://api.spotify.com/v1/artists/"+artist+"/top-tracks?country=PL&limit=50", headers=authorization_header)
         for track in res.json()['tracks']:
             songs.append(track['external_urls']['spotify'])
-     
+
+
 @app.route("/callback/q")
 def callback():
     #mood = 4 #print "mood: ", mood
@@ -103,6 +104,8 @@ def callback():
                 moodified_songs.append(song[0])
             if len(moodified_songs) == 20:
                 break
+    return render_template('return.html', moodif=moodified_songs)
+    return redirect('/return')
     return str(moodified_songs)
     return str(justPredict.predict(songs[:50])[2][0]) 
     #return render_template('moodify.html')

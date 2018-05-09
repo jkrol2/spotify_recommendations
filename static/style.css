@@ -3,6 +3,7 @@
     font-size: 80px;
     text-align: center;
     padding: 2.5em;
+    padding-top: 1.5em;
     letter-spacing: -.04em;
     font-weight: 900;
 }
@@ -17,4 +18,7 @@
 button{
     background:none;
     border:none;
+}
+iframe{
+
 }
