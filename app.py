@@ -159,7 +159,7 @@ def callback():
         chosen_songs = []
         while len(chosen_songs) < 20:
             chosen_songs.append(random.choice(moodified_songs))
-        
+            chosen_songs = list(set(chosen_songs)) 
     return render_template('return.html', moodif=str(create_playlist(chosen_songs, user_id, authorization_header)))
     return redirect('/return')
     #return render_template('moodify.html')
