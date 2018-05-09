@@ -81,6 +81,7 @@ def create_playlist(moodified_songs, authorization_header):
 
     return playlist_uri
      
+
 @app.route("/callback/q")
 def callback():
     #mood = 4 #print "mood: ", mood
@@ -117,6 +118,8 @@ def callback():
             if len(moodified_songs) == 20:
                 break
     return str(create_playlist(moodified_songs, authorization_header))
+    return render_template('return.html', moodif=moodified_songs)
+    return redirect('/return')
     return str(moodified_songs)
 #    return str(justPredict.predict(songs[:50])[2][0]) 
     #return render_template('moodify.html')
