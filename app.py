@@ -56,7 +56,7 @@ def get_songs_from_saved_tracks(songs, authorization_header):
     for offset in xrange(100):
         req = requests.get('https://api.spotify.com/v1/me/tracks?offset='+str(50*offset)+'&limit=50', headers=authorization_header)
         if req.json()['next'] == None:
-            print(offset)
+            print("offset: ", offset)
             break
         for track in req.json()['items']:
             songs.append(track['track']['external_urls']['spotify'])
@@ -125,11 +125,13 @@ def callback():
                 moodified_songs.append(song[0])
     if len(moodified_songs) < 5:
         return render_template('tonie.html')
-    
-    chosen_songs = []
-    while len(chosen_songs) < 20:
-        chosen_songs.append(random.choice(moodified_songs))
-        print(len(chosen_songs))
+
+    if len(moodified_songs < 20:
+        chosen_songs = moodified_songs
+    else:
+        chosen_songs = []
+        while len(chosen_songs) < 20:
+            chosen_songs.append(random.choice(moodified_songs))
         
     return render_template('return.html', moodif=str(create_playlist(chosen_songs, authorization_header)))
     return redirect('/return')
