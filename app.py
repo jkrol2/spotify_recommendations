@@ -79,9 +79,23 @@ def get_songs_from_saved_artists(songs, authorization_header):
         for track in res.json()['tracks']:
             songs.append(track['external_urls']['spotify'])
 
-def create_playlist(moodified_songs, authorization_header):
+def get_songs_from_playlists(songs, user_id, authorization_header):
+    req = requests.get("https://api.spotify.com/v1/me/playlists", headers=authorization_header)
+    playlists_ids = [playlist['id'] for playlist in req.json()['items']]
+    for playlist_id in playlists_ids:
+        req = requests.get("https://api.spotify.com/v1/users/{user_id}/playlists/{playlist_id}/tracks".format(user_id=user_id, playlist_id=playlist_id), headers=authorization_header)
+        print(req.json().keys())
+        try:
+            for track in req.json()['items']:
+                songs.append(track['track']['external_urls']['spotify'])
+        except KeyError:
+            pass 
+
+def get_user_id(authorization_header):
     req = requests.get("https://api.spotify.com/v1/me/", headers=authorization_header)
-    user_id = str(req.json()['id'])
+    return str(req.json()['id'])
+    
+def create_playlist(moodified_songs, user_id, authorization_header):
     
     req = requests.get("https://api.spotify.com/v1/users/{user_id}/playlists".format(user_id=user_id), headers=authorization_header)
     for playlist in req.json()['items']:
@@ -122,10 +136,13 @@ def callback():
 
     authorization_header = {"Authorization":"Bearer {}".format(access_token)}
     songs = []
-    
+
+    user_id = get_user_id(authorization_header)
     get_songs_from_saved_tracks(songs, authorization_header)
     get_songs_from_saved_artists(songs, authorization_header)
     get_songs_from_saved_albums(songs, authorization_header)
+    get_songs_from_playlists(songs, user_id, authorization_header)
+    
     moodified_songs = []
     for x in xrange(0, len(songs), 50):
         if len(moodified_songs) == 20:
@@ -143,7 +160,7 @@ def callback():
         while len(chosen_songs) < 20:
             chosen_songs.append(random.choice(moodified_songs))
         
-    return render_template('return.html', moodif=str(create_playlist(chosen_songs, authorization_header)))
+    return render_template('return.html', moodif=str(create_playlist(chosen_songs, user_id, authorization_header)))
     return redirect('/return')
     #return render_template('moodify.html')
 
