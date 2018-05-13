@@ -1,0 +1,31 @@
+<!doctype html>
+<title>Flaskr</title>
+<link rel = stylesheet type = text/css href = "{{ url_for('static', filename='style.css') }}">
+<div class = page>
+    <div class = title>
+        Welcome to Moodify!
+    </div>
+    <div class = moods>
+        <form action="" method="POST" >
+            <!--0 - sad 1 - happy 2 - party 3 - angry 4 - calm 5 - none-->
+            <button class="btn btn-danger" type="submit" name="mood" value="{{  0  }}" href="{{ url_for('login') }}">
+                <img src="{{ url_for('static', filename='0.png') }}">
+            </button>
+            <button class="btn btn-danger" type="submit" name="mood" value="{{  1  }}" href="{{ url_for('login') }}">
+                <img src="{{ url_for('static', filename='1.png') }}">
+            </button>
+            <button class="btn btn-danger" type="submit" name="mood" value="{{  2  }}" href="{{ url_for('login') }}">
+                <img src="{{ url_for('static', filename='2.png') }}">
+            </button>
+            <button class="btn btn-danger" type="submit" name="mood" value="{{  3  }}" href="{{ url_for('login') }}">
+                <img src="{{ url_for('static', filename='3.png') }}">
+            </button>
+            <button class="btn btn-danger" type="submit" name="mood" value="{{  4  }}" href="{{ url_for('login') }}">
+                <img src="{{ url_for('static', filename='4.png') }}">
+            </button>
+        </form>
+    </div>
+    <div class = 'bottom title'>
+        What is your mood?
+    </div>
+</div>

@@ -3,7 +3,8 @@ import requests
 import base64
 import urllib
 import yaml
-from flask import Flask, request, redirect, g, render_template, Response
+import random
+from flask import Flask, request, redirect, g, render_template, Response, url_for
 import spotipy
 import justPredict
 
@@ -35,8 +36,13 @@ auth_query_parameters = {
     "client_id": CLIENT_ID
 }
 
-@app.route("/")
+@app.route("/", methods=["GET","POST"])
 def main():
+    if request.method == 'POST':
+        global mood
+        mood = request.form['mood']
+#        return redirect(url_for('.login', mood=mood))
+        return redirect('/login')
     return render_template('index.html')
 
 @app.route("/login")
@@ -50,23 +56,68 @@ def get_songs_from_saved_tracks(songs, authorization_header):
     for offset in xrange(100):
         req = requests.get('https://api.spotify.com/v1/me/tracks?offset='+str(50*offset)+'&limit=50', headers=authorization_header)
         if req.json()['next'] == None:
-            print(offset)
+            print("offset: ", offset)
             break
         for track in req.json()['items']:
             songs.append(track['track']['external_urls']['spotify'])
 
 
+
+def get_songs_from_saved_albums(songs, authorization_header):
+    req = requests.get("https://api.spotify.com/v1/me/albums", headers=authorization_header)
+    album_ids = [album['album']['id'] for album in req.json()['items'] ]
+    for album_id in album_ids:
+        req = requests.get("http://api.spotify.com/v1/albums/{album_id}/tracks".format(album_id=album_id), headers=authorization_header)
+        for track in req.json()['items']:
+            songs.append(track['external_urls']['spotify'])
+        
 def get_songs_from_saved_artists(songs, authorization_header):
-    req =  requests.get("https://api.spotify.com/v1/me/following?type=artist", headers=authorization_header)
+    req = requests.get("https://api.spotify.com/v1/me/following?type=artist", headers=authorization_header)
     artists_ids = [a_id['id'] for a_id in req.json()['artists']['items']]
     for artist in artists_ids:
         res = requests.get("https://api.spotify.com/v1/artists/"+artist+"/top-tracks?country=PL&limit=50", headers=authorization_header)
         for track in res.json()['tracks']:
             songs.append(track['external_urls']['spotify'])
+
+def get_songs_from_playlists(songs, user_id, authorization_header):
+    req = requests.get("https://api.spotify.com/v1/me/playlists", headers=authorization_header)
+    playlists_ids = [playlist['id'] for playlist in req.json()['items']]
+    for playlist_id in playlists_ids:
+        req = requests.get("https://api.spotify.com/v1/users/{user_id}/playlists/{playlist_id}/tracks".format(user_id=user_id, playlist_id=playlist_id), headers=authorization_header)
+        print(req.json().keys())
+        try:
+            for track in req.json()['items']:
+                songs.append(track['track']['external_urls']['spotify'])
+        except KeyError:
+            pass 
+
+def get_user_id(authorization_header):
+    req = requests.get("https://api.spotify.com/v1/me/", headers=authorization_header)
+    return str(req.json()['id'])
+    
+def create_playlist(moodified_songs, user_id, authorization_header):
+    
+    req = requests.get("https://api.spotify.com/v1/users/{user_id}/playlists".format(user_id=user_id), headers=authorization_header)
+    for playlist in req.json()['items']:
+        if playlist['name'] == 'Moodify playlist':
+            playlist_id = playlist['id']
+            playlist_uri = playlist['uri']
+            break
+    else:
+        payload = {"name" : "Moodify playlist"}
+        req = requests.post("https://api.spotify.com/v1/users/{0}/playlists".format(user_id), json=payload, headers=authorization_header)
+        playlist_id = str(req.json()['id'])
+        playlist_uri = str(req.json()['uri'])
+
+    payload = {"uris": ["spotify:track:"+str(track.split('track/')[1]) for track in moodified_songs]}
+    req = requests.put("https://api.spotify.com/v1/users/{user_id}/playlists/{playlist_id}/tracks".format(user_id=user_id, playlist_id=playlist_id), headers=authorization_header, json=payload)
+
+    return playlist_uri
      
+
 @app.route("/callback/q")
 def callback():
-    mood = 4
+    #mood = 4 #print "mood: ", mood
     auth_token = request.args['code']
     code_payload = {
         "grant_type": "authorization_code",
@@ -85,11 +136,13 @@ def callback():
 
     authorization_header = {"Authorization":"Bearer {}".format(access_token)}
     songs = []
-    
+
+    user_id = get_user_id(authorization_header)
     get_songs_from_saved_tracks(songs, authorization_header)
     get_songs_from_saved_artists(songs, authorization_header)
-    print(len(songs))
-    #return str(songs)
+    get_songs_from_saved_albums(songs, authorization_header)
+    get_songs_from_playlists(songs, user_id, authorization_header)
+    
     moodified_songs = []
     for x in xrange(0, len(songs), 50):
         if len(moodified_songs) == 20:
@@ -97,10 +150,18 @@ def callback():
         for song in justPredict.predict(songs[x:x+50]):
             if int(song[1]) == int(mood):
                 moodified_songs.append(song[0])
-            if len(moodified_songs) == 20:
-                break
-    return str(moodified_songs)
-    return str(justPredict.predict(songs[:50])[2][0]) 
+    if len(moodified_songs) < 5:
+        return render_template('tonie.html')
+
+    if len(moodified_songs) < 20:
+        chosen_songs = moodified_songs
+    else:
+        chosen_songs = []
+        while len(chosen_songs) < 20:
+            chosen_songs.append(random.choice(moodified_songs))
+            chosen_songs = list(set(chosen_songs)) 
+    return render_template('return.html', moodif=str(create_playlist(chosen_songs, user_id, authorization_header)))
+    return redirect('/return')
     #return render_template('moodify.html')
 
 app.run(host='0.0.0.0',port=PORT)

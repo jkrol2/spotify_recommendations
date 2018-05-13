@@ -1,0 +1,29 @@
+.title{
+    font-family: Circular,Helvetica,Arial,sans-serif;
+    font-size: 80px;
+    text-align: center;
+    padding: 2.5em;
+    padding-top: 1.5em;
+    letter-spacing: -.04em;
+    font-weight: 900;
+}
+.bottom{
+    font-size: 2em;
+    padding-bottom: 0.5em;
+    font-size: 48px;
+}
+.moods{
+    text-align: center;
+}
+button{
+    background:none;
+    border:none;
+}
+iframe{
+    position: absolute;
+    left: calc(50% - 300px);
+    width: 600px;
+}
+.page{
+    height:98vh;
+}
